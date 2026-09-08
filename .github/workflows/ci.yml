@@ -1,0 +1,53 @@
+name: CI — Tests & Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run test suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run engine tests
+        run: pytest tests/test_analyzer.py -v --tb=short
+
+      - name: Run API tests
+        run: pytest tests/test_api.py -v --tb=short
+
+  security-scan:
+    name: Bandit static security analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Bandit
+        run: pip install bandit==1.7.8
+
+      - name: Run Bandit
+        # -ll = only medium and high severity
+        # -r  = recursive
+        # Excludes test files (intentional use of assert, etc.)
+        run: bandit -r engine/ api/ -ll --exclude tests/
