@@ -270,7 +270,7 @@ async def breach_check(request: Request, password: str) -> BreachCheckResponse:
         )
 
     # Step 1: SHA-1 hash (HIBP uses SHA-1 specifically)
-    sha1_hash = hashlib.sha1(password.encode("utf-8")).hexdigest().upper()
+    sha1_hash = hashlib.sha1(password.encode("utf-8"), usedforsecurity=False).hexdigest().upper() # nosec B324
     prefix    = sha1_hash[:5]    # sent to HIBP
     suffix    = sha1_hash[5:]    # kept local, used for matching
 
@@ -368,4 +368,4 @@ async def get_audit_log(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True) # nosec B104
