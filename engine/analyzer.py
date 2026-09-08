@@ -357,9 +357,10 @@ class CrackTimeEstimator:
     OFFLINE_FAST_HASH    = 1e10          # MD5/SHA1 GPU cluster
 
     def estimate(self, entropy_result: EntropyResult) -> CrackTimeResult:
-        # Guesses for 50% crack probability using birthday paradox approximation
-        # For uniform distribution: guesses ≈ 0.5 * 2^H
-        guesses = 0.5 * (2 ** entropy_result.bits)
+        # Cap entropy bits to prevent float overflow on very long passwords
+        # 128 bits = 3.4 x 10^38 guesses - effectively uncrackable, no need to go higher
+        capped_bits = min(entropy_result.bits, 128.0)
+        guesses = 0.5 * (2 ** capped_bits)
 
         return CrackTimeResult(
             online_throttled_seconds=guesses / self.ONLINE_THROTTLED,
